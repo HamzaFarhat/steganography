@@ -1,13 +1,15 @@
 import cv2
 from PIL import Image
 import numpy as np
+from cryptography.fernet import Fernet
+
+#Initialize empty string
 secretMessageBinary = ""
 
 def decode():
     #Open image to decode and create RGB array
     toDecodeImage = "encoded.png"
     image = cv2.imread(toDecodeImage)
-    # print(image)
 
     #Convert rgb image into binary array
     data = np.array(image)
@@ -36,5 +38,16 @@ def decode():
 
     #Cut the decoded message at the delimiter
     finalString = decoded.split("*&")[0]
-    print("Secret message is:", finalString)
+
+    #Read encryption key from file
+    file = open('key.key', 'rb')
+    key = file.read()
+    file.close()
+
+    #Use key to decrypt message
+    fernet = Fernet(key)
+    decrypted = fernet.decrypt(bytes(finalString, 'utf-8'))
+    print("Secret message is:", decrypted.decode("utf-8"))
+
+    
     

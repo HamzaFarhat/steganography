@@ -1,8 +1,11 @@
 import cv2
 from PIL import Image
 import numpy as np
+from cryptography.fernet import Fernet
+
 counter = 0
-import sys
+
+#Check if image file is big enough to enter hidden message
 def spaceChecker(image, message):
   width, height = image.shape[0], image.shape[1]
   placesToStore = width * height * 3
@@ -18,18 +21,32 @@ def encode():
     #Get the secret message from user
     secret = input("Enter your secret message:\n")
 
+    #Generate encryption key
+    key = Fernet.generate_key()
+    f = Fernet(key)
+
+    #Write encryption key to a file
+    file = open('key.key', 'wb') #wb = write bytes
+    file.write(key)
+    file.close()
+
+    #Encrypt the secret message using symmetric encryption
+    secret1 = f.encrypt(bytes(secret, 'utf-8'))
+    secret1 = secret1.decode("utf-8")
+
+
     #Open image file and resize it to a manageable size
     img = "input.jpg"
     image = cv2.imread(img)
-    resize = cv2.resize(image, (50, 50))
+    resize = cv2.resize(image, (200, 200))
 
     #Convert image into binary array
     data = np.array(resize)
     binaryImage = np.vectorize(np.binary_repr)(data, width=8)
 
     #Convert secret to binary
-    delim = "*&"
-    s=secret+delim
+    delim = "*&t"
+    s=secret1+delim
     updatedSecret = ''.join('{0:08b}'.format(ord(x), 'b') for x in s)
 
     #Check if image pixel size is large enough to hold the secret
@@ -57,5 +74,5 @@ def encode():
     cv2.imwrite("encoded.png", alteredData)
 
     #Closing
-    print("Encoding completed, check encoded.jpg!")
+    print("Encoding completed, check encoded.png!")
     
